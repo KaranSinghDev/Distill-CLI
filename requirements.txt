@@ -1,0 +1,5 @@
+# Distill CLI requirements
+# Uses Python standard library only
+
+# For development
+pytest>=7.0.0
