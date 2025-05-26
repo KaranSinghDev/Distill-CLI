@@ -4,6 +4,7 @@ CLI entry point for Distill CLI
 """
 import argparse
 import sys
+import json
 from distill import compress
 
 
@@ -26,7 +27,10 @@ def main():
 
     result = compress(output, args.type, args.prompt)
 
-    print(result)
+    if args.json:
+        print(json.dumps({"compressed": result, "type": args.type}))
+    else:
+        print(result)
 
 
 if __name__ == "__main__":
