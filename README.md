@@ -29,17 +29,27 @@ terraform plan | distill --type terraform
 - `--type`, `-t` - Output type (git-diff, npm-test, terraform, generic)
 - `--prompt`, `-p` - Specific prompt for extraction
 - `--lines`, `-l` - Max lines for generic
-- `--json` - JSON output
+- `--format`, `-f` - Output format (text, json, markdown)
 - `--version` - Show version
 
 ## Examples
 
 ```bash
-git diff | distill
-npm test | distill --type npm-test
-terraform plan | distill --type terraform
+git diff | distill -t git-diff
+npm test | distill -t npm-test
+terraform plan | distill -t terraform
+cat logs.txt | distill
 ```
+
+## Features
+
+- Compress git diff output
+- Compress npm test output
+- Compress terraform plan output
+- Multiple output formats (text, JSON, markdown)
+- Custom prompt support
+- Pipe-friendly design
 
 ## License
 
-MIT License
+MIT License - see LICENSE file
