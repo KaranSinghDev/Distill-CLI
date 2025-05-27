@@ -5,10 +5,10 @@ import re
 from typing import Optional
 
 
-def compress_git_diff(output: str, prompt: str = "") -> str:
-    """Compress git diff output for LLM."""
+def compress_git_diff(output: str, prompt: str = "") -> dict:
+    """Compress git diff output for LLM returning structured data."""
     if not output.strip():
-        return "No changes"
+        return {"files_changed": 0, "hunks": 0, "changes": []}
 
     lines = output.strip().split("\n")
     files_changed = set()
@@ -22,19 +22,15 @@ def compress_git_diff(output: str, prompt: str = "") -> str:
         elif line.startswith("@@"):
             hunks.append(line)
 
-    result = f"Files changed: {len(files_changed)}\n"
-    result += f"Hunks: {len(hunks)}\n"
-
-    if prompt:
-        result += f"\nPrompt: {prompt}\n"
-
-    if hunks:
-        result += f"\nChanges:\n" + "\n".join(hunks[:5])
-
-    return result
+    return {
+        "files_changed": len(files_changed),
+        "hunks": len(hunks),
+        "changes": hunks[:5],
+        "prompt": prompt
+    }
 
 
-def compress_npm_test(output: str, prompt: str = "") -> str:
+def compress_npm_test(output: str, prompt: str = "") -> dict:
     """Compress npm test output."""
     lines = output.strip().split("\n")
 
@@ -49,14 +45,15 @@ def compress_npm_test(output: str, prompt: str = "") -> str:
         if re.search(r'\d+\s+fail', line, re.I):
             failed = re.search(r'(\d+)', line).group(1) if re.search(r'(\d+)', line) else 0
 
-    result = f"Tests: passed={passed}, failed={failed}\n"
-    if summary_line:
-        result += f"Summary: {summary_line}\n"
+    return {
+        "passed": passed,
+        "failed": failed,
+        "summary": summary_line,
+        "prompt": prompt
+    }
 
-    return result
 
-
-def compress_terraform(output: str, prompt: str = "") -> str:
+def compress_terraform(output: str, prompt: str = "") -> dict:
     """Compress terraform plan output."""
     lines = output.strip().split("\n")
 
@@ -70,19 +67,17 @@ def compress_terraform(output: str, prompt: str = "") -> str:
         if "-" in line and not line.startswith("-") and not line.startswith("diff"):
             changes["destroy"] += 1
 
-    result = f"Plan: {changes}\n"
-
-    return result
+    return {"plan": changes, "prompt": prompt}
 
 
 def compress(output: str, output_type: str = "summary", prompt: str = "") -> str:
     """General compression function."""
     if output_type == "git-diff":
-        return compress_git_diff(output, prompt)
+        return str(compress_git_diff(output, prompt))
     elif output_type == "npm-test":
-        return compress_npm_test(output, prompt)
+        return str(compress_npm_test(output, prompt))
     elif output_type == "terraform":
-        return compress_terraform(output, prompt)
+        return str(compress_terraform(output, prompt))
     else:
         return compress_generic(output, prompt)
 
