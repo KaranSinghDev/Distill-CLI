@@ -5,6 +5,7 @@ CLI entry point for Distill CLI
 import argparse
 import sys
 import json
+import os
 from distill import compress
 
 
@@ -13,10 +14,10 @@ def main():
         description="Distill CLI - Compress CLI output for LLM",
         epilog="Examples:\n  git diff | distill -t git-diff\n  npm test | distill -t npm-test"
     )
-    parser.add_argument("--type", "-t", default="generic", help="Output type (git-diff, npm-test, terraform, generic)")
+    parser.add_argument("--type", "-t", default=os.environ.get("DISTILL_TYPE", "generic"), help="Output type")
     parser.add_argument("--prompt", "-p", default="", help="Specific prompt for extraction")
-    parser.add_argument("--lines", "-l", type=int, default=20, help="Max lines for generic")
-    parser.add_argument("--format", "-f", default="text", help="Output format (text, json, markdown)")
+    parser.add_argument("--lines", "-l", type=int, default=int(os.environ.get("DISTILL_LINES", "20")), help="Max lines")
+    parser.add_argument("--format", "-f", default=os.environ.get("DISTILL_FORMAT", "text"), help="Output format")
     parser.add_argument("-q", "--quiet", action="store_true", help="Quiet mode for scripts")
     parser.add_argument("--version", action="store_true", help="Show version")
 
