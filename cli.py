@@ -17,6 +17,7 @@ def main():
     parser.add_argument("--prompt", "-p", default="", help="Specific prompt for extraction")
     parser.add_argument("--lines", "-l", type=int, default=20, help="Max lines for generic")
     parser.add_argument("--format", "-f", default="text", help="Output format (text, json, markdown)")
+    parser.add_argument("-q", "--quiet", action="store_true", help="Quiet mode for scripts")
     parser.add_argument("--version", action="store_true", help="Show version")
 
     args = parser.parse_args()
@@ -30,7 +31,9 @@ def main():
 
     result = compress(output, args.type, args.prompt)
 
-    if args.format == "json":
+    if args.quiet:
+        sys.exit(0)
+    elif args.format == "json":
         print(json.dumps({"result": result, "type": args.type}))
     elif args.format == "markdown":
         print(f"```{args.type}\n{result}\n```")
