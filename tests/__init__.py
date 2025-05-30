@@ -1,5 +1,6 @@
 # Distill CLI tests
 from distill import compress
+from distill.core import compress_git_diff, compress_npm_test, compress_terraform
 
 
 def test_compress_generic():
@@ -13,7 +14,21 @@ def test_compress_git_diff():
     """Test git diff compression."""
     output = "diff --git a/file.txt b/file.txt\n@@ -1,3 +1,4 @@\n+new line"
     result = compress(output, "git-diff")
-    assert "Files changed" in result or "Hunks" in result
+    assert "files_changed" in result.lower() or "hunks" in result.lower()
+
+
+def test_compress_npm_test():
+    """Test npm test compression."""
+    output = "PASS 10 tests\nFAIL 2 tests"
+    result = compress(output, "npm-test")
+    assert "passed" in result.lower() or "failed" in result.lower()
+
+
+def test_compress_terraform():
+    """Test terraform compression."""
+    output = "+\n+\n~\n-\n"
+    result = compress(output, "terraform")
+    assert "plan" in result.lower()
 
 
 def test_version():
