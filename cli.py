@@ -18,6 +18,7 @@ def main():
     parser.add_argument("--prompt", "-p", default="", help="Specific prompt for extraction")
     parser.add_argument("--lines", "-l", type=int, default=int(os.environ.get("DISTILL_LINES", "20")), help="Max lines")
     parser.add_argument("--format", "-f", default=os.environ.get("DISTILL_FORMAT", "text"), help="Output format")
+    parser.add_argument("--tokens", action="store_true", help="Show token estimate")
     parser.add_argument("-q", "--quiet", action="store_true", help="Quiet mode for scripts")
     parser.add_argument("--version", action="store_true", help="Show version")
 
@@ -31,6 +32,10 @@ def main():
     output = sys.stdin.read()
 
     result = compress(output, args.type, args.prompt)
+
+    if args.tokens:
+        token_est = len(result.split()) * 1.3
+        result = f"Tokens: ~{int(token_est)}\n{result}"
 
     if args.quiet:
         sys.exit(0)
