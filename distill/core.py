@@ -7,7 +7,7 @@ from typing import Optional
 
 def compress_git_diff(output: str, prompt: str = "") -> dict:
     """Compress git diff output for LLM returning structured data."""
-    if not output.strip():
+    if not output or not output.strip():
         return {"files_changed": 0, "hunks": 0, "changes": []}
 
     lines = output.strip().split("\n")
@@ -32,6 +32,9 @@ def compress_git_diff(output: str, prompt: str = "") -> dict:
 
 def compress_npm_test(output: str, prompt: str = "") -> dict:
     """Compress npm test output."""
+    if not output or not output.strip():
+        return {"passed": 0, "failed": 0, "skipped": 0, "summary": "", "prompt": prompt}
+    
     lines = output.strip().split("\n")
 
     passed = failed = skipped = 0
@@ -55,6 +58,9 @@ def compress_npm_test(output: str, prompt: str = "") -> dict:
 
 def compress_terraform(output: str, prompt: str = "") -> dict:
     """Compress terraform plan output."""
+    if not output or not output.strip():
+        return {"plan": {"add": 0, "change": 0, "destroy": 0}, "prompt": prompt}
+    
     lines = output.strip().split("\n")
 
     changes = {"add": 0, "change": 0, "destroy": 0}
@@ -70,8 +76,11 @@ def compress_terraform(output: str, prompt: str = "") -> dict:
     return {"plan": changes, "prompt": prompt}
 
 
-def compress(output: str, output_type: str = "summary", prompt: str = "") -> str:
+def compress(output: str, output_type: str = "summary", prompt: str = "", max_lines: int = 20) -> str:
     """General compression function."""
+    if not output:
+        return ""
+    
     if output_type == "git-diff":
         return str(compress_git_diff(output, prompt))
     elif output_type == "npm-test":
@@ -79,17 +88,22 @@ def compress(output: str, output_type: str = "summary", prompt: str = "") -> str
     elif output_type == "terraform":
         return str(compress_terraform(output, prompt))
     else:
-        return compress_generic(output, prompt)
+        return compress_generic(output, prompt, max_lines)
 
 
 def compress_generic(output: str, prompt: str = "", max_lines: int = 20) -> str:
     """Generic compression - extract key information."""
+    if not output:
+        return ""
+    
     lines = output.strip().split("\n")
 
     if len(lines) <= max_lines:
         return output
 
     result = f"Output has {len(lines)} lines\n"
+    if prompt:
+        result += f"Prompt: {prompt}\n"
     result += f"First {max_lines} lines:\n"
     result += "\n".join(lines[:max_lines])
 
