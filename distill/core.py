@@ -2,10 +2,19 @@
 Core compression logic for Distill CLI
 """
 import re
-from typing import Optional
+from typing import Optional, Dict, List
+
+__all__ = [
+    "compress",
+    "compress_git_diff", 
+    "compress_npm_test",
+    "compress_terraform",
+    "compress_pytest",
+    "compress_generic"
+]
 
 
-def compress_git_diff(output: str, prompt: str = "") -> dict:
+def compress_git_diff(output: str, prompt: str = "") -> Dict[str, any]:
     """Compress git diff output for LLM returning structured data."""
     if not output or not output.strip():
         return {"files_changed": 0, "hunks": 0, "changes": []}
@@ -30,7 +39,7 @@ def compress_git_diff(output: str, prompt: str = "") -> dict:
     }
 
 
-def compress_npm_test(output: str, prompt: str = "") -> dict:
+def compress_npm_test(output: str, prompt: str = "") -> Dict[str, any]:
     """Compress npm test output."""
     if not output or not output.strip():
         return {"passed": 0, "failed": 0, "skipped": 0, "summary": "", "prompt": prompt}
@@ -56,7 +65,7 @@ def compress_npm_test(output: str, prompt: str = "") -> dict:
     }
 
 
-def compress_terraform(output: str, prompt: str = "") -> dict:
+def compress_terraform(output: str, prompt: str = "") -> Dict[str, any]:
     """Compress terraform plan output."""
     if not output or not output.strip():
         return {"plan": {"add": 0, "change": 0, "destroy": 0}, "prompt": prompt}
@@ -76,7 +85,7 @@ def compress_terraform(output: str, prompt: str = "") -> dict:
     return {"plan": changes, "prompt": prompt}
 
 
-def compress_pytest(output: str, prompt: str = "") -> dict:
+def compress_pytest(output: str, prompt: str = "") -> Dict[str, any]:
     """Compress pytest output."""
     if not output or not output.strip():
         return {"passed": 0, "failed": 0, "errors": 0, "skipped": 0, "prompt": prompt}
