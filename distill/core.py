@@ -10,6 +10,7 @@ __all__ = [
     "compress_npm_test",
     "compress_terraform",
     "compress_pytest",
+    "compress_docker",
     "compress_generic"
 ]
 
@@ -125,6 +126,62 @@ def compress_pytest(output: str, prompt: str = "") -> Dict[str, any]:
     }
 
 
+def compress_docker(output: str, prompt: str = "") -> Dict[str, any]:
+    """Compress docker output."""
+    if not output or not output.strip():
+        return {"containers": [], "images": [], "prompt": prompt}
+    
+    lines = output.strip().split("\n")
+    containers = []
+    images = []
+    
+    for line in lines:
+        if "CONTAINER" in line:
+            parts = line.split()
+            if parts:
+                containers.append(parts[0])
+        if "IMAGE" in line:
+            parts = line.split()
+            if parts:
+                images.append(parts[0])
+    
+    return {"containers": containers[:10], "images": images[:10], "prompt": prompt}
+    
+    lines = output.strip().split("\n")
+    
+    passed = failed = errors = skipped = 0
+    failed_tests = []
+    error_tests = []
+    
+    for line in lines:
+        match = re.search(r'(\d+)\s+passed', line, re.I)
+        if match:
+            passed = int(match.group(1))
+        match = re.search(r'(\d+)\s+failed', line, re.I)
+        if match:
+            failed = int(match.group(1))
+        match = re.search(r'(\d+)\s+error', line, re.I)
+        if match:
+            errors = int(match.group(1))
+        match = re.search(r'(\d+)\s+skipped', line, re.I)
+        if match:
+            skipped = int(match.group(1))
+        if "FAILED" in line:
+            failed_tests.append(line[:80])
+        if "ERROR" in line:
+            error_tests.append(line[:80])
+    
+    return {
+        "passed": passed,
+        "failed": failed,
+        "errors": errors,
+        "skipped": skipped,
+        "failed_tests": failed_tests[:5],
+        "error_tests": error_tests[:5],
+        "prompt": prompt
+    }
+
+
 def compress(output: str, output_type: str = "summary", prompt: str = "", max_lines: int = 20) -> str:
     """General compression function."""
     if not output:
@@ -138,6 +195,8 @@ def compress(output: str, output_type: str = "summary", prompt: str = "", max_li
         return str(compress_terraform(output, prompt))
     elif output_type == "pytest":
         return str(compress_pytest(output, prompt))
+    elif output_type == "docker":
+        return str(compress_docker(output, prompt))
     else:
         return compress_generic(output, prompt, max_lines)
 
