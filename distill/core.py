@@ -11,6 +11,7 @@ __all__ = [
     "compress_terraform",
     "compress_pytest",
     "compress_docker",
+    "compress_kubectl",
     "compress_generic"
 ]
 
@@ -146,6 +147,37 @@ def compress_docker(output: str, prompt: str = "") -> Dict[str, any]:
                 images.append(parts[0])
     
     return {"containers": containers[:10], "images": images[:10], "prompt": prompt}
+
+
+def compress_kubectl(output: str, prompt: str = "") -> Dict[str, any]:
+    """Compress kubectl output."""
+    if not output or not output.strip():
+        return {"resources": [], "pods": [], "services": [], "prompt": prompt}
+    
+    lines = output.strip().split("\n")
+    resources = []
+    pods = []
+    services = []
+    
+    for line in lines:
+        if line.startswith("NAME"):
+            continue
+        if not line.strip():
+            continue
+        parts = line.split()
+        if parts:
+            resources.append(parts[0])
+        if "pod" in line.lower():
+            pods.append(line[:60])
+        if "service" in line.lower():
+            services.append(line[:60])
+    
+    return {
+        "resources": resources[:10],
+        "pods": pods[:5],
+        "services": services[:5],
+        "prompt": prompt
+    }
     
     lines = output.strip().split("\n")
     
@@ -197,6 +229,8 @@ def compress(output: str, output_type: str = "summary", prompt: str = "", max_li
         return str(compress_pytest(output, prompt))
     elif output_type == "docker":
         return str(compress_docker(output, prompt))
+    elif output_type == "kubectl":
+        return str(compress_kubectl(output, prompt))
     else:
         return compress_generic(output, prompt, max_lines)
 
