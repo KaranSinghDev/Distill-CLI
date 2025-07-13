@@ -1,5 +1,10 @@
 # Distill CLI requirements
-# Uses Python standard library only
+
+# Core (standard library)
+# argparse, sys, json, os, re
+
+# For YAML output format
+pyyaml>=6.0
 
 # For development
 pytest>=7.0.0

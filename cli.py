@@ -6,6 +6,11 @@ import argparse
 import sys
 import json
 import os
+import re
+try:
+    import yaml
+except ImportError:
+    yaml = None
 from distill import compress
 
 
@@ -32,7 +37,7 @@ def main():
     parser.add_argument("--type", "-t", default=os.environ.get("DISTILL_TYPE", "generic"), help="Output type")
     parser.add_argument("--prompt", "-p", default="", help="Specific prompt for extraction")
     parser.add_argument("--lines", "-l", type=validate_lines, default=int(os.environ.get("DISTILL_LINES", "20")), help="Max lines")
-    parser.add_argument("--format", "-f", default=os.environ.get("DISTILL_FORMAT", "text"), help="Output format")
+    parser.add_argument("--format", "-f", default=os.environ.get("DISTILL_FORMAT", "text"), choices=["text", "json", "markdown", "yaml"], help="Output format")
     parser.add_argument("--tokens", action="store_true", help="Show token estimate")
     parser.add_argument("-q", "--quiet", action="store_true", help="Quiet mode for scripts")
     parser.add_argument("--version", action="store_true", help="Show version")
@@ -49,8 +54,10 @@ def main():
     result = compress(output, args.type, args.prompt, args.lines)
 
     if args.tokens:
-        token_est = len(result.split()) * 1.3
-        result = f"Tokens: ~{int(token_est)}\n{result}"
+        words = result.split()
+        token_est = sum(len(w) for w in words) / 4
+        token_est = int(token_est)
+        result = f"Tokens: ~{token_est}\n{result}"
 
     if args.quiet:
         sys.exit(0)
@@ -58,6 +65,12 @@ def main():
         print(json.dumps({"result": result, "type": args.type}))
     elif args.format == "markdown":
         print(f"```{args.type}\n{result}\n```")
+    elif args.format == "yaml" and yaml:
+        print(yaml.dump({"result": result, "type": args.type}))
+    elif args.format == "yaml":
+        import warnings
+        warnings.warn("yaml not installed, falling back to text")
+        print(result)
     else:
         print(result)
 
