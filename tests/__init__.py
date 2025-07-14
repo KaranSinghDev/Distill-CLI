@@ -58,3 +58,31 @@ def test_compress_with_prompt():
     output = "line1\nline2\nline3"
     result = compress(output, "generic", prompt="get summary", max_lines=2)
     assert "Prompt" in result
+
+
+def test_compress_docker():
+    """Test docker compression."""
+    output = "CONTAINER abc123\nIMAGE nginx"
+    result = compress(output, "docker")
+    assert "containers" in result
+
+
+def test_compress_kubectl():
+    """Test kubectl compression."""
+    output = "NAME ready"
+    result = compress(output, "kubectl")
+    assert "resources" in result
+
+
+def test_version():
+    """Test version is set."""
+    from distill import __version__
+    assert __version__ == "0.1.0"
+
+
+def test_config_exports():
+    """Test config exports."""
+    from config import DEFAULT_MAX_LINES, DEFAULT_FORMAT, DEFAULT_OUTPUT_TYPE
+    assert DEFAULT_MAX_LINES == 20
+    assert DEFAULT_FORMAT == "text"
+    assert DEFAULT_OUTPUT_TYPE == "generic"
